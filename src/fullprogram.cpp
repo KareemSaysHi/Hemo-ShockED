@@ -123,9 +123,8 @@ void displayArrivalTime() {
     Serial.println(now.unixtime());
     Serial.println(hoursPassed);
     Serial.println(minutesPassed);
-    Serial.println(secondsPassed);
+    Serial.println(secondsPassed); */
     int displaytime = (hoursPassed * 100) + minutesPassed; 
-    */
     arrivalDisplay.showNumberDecEx(displaytime, 0b11100000, true);
 
 }
