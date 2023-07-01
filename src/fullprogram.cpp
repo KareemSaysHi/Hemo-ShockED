@@ -114,10 +114,18 @@ void displayCurrentTime() {
 void displayArrivalTime() {
     if (!arrivedYet) {
         timeSinceActivate = now.unixtime(); //start a stopwatch, stores the time in unixtime (look it up to get more info)
+        arrivedYet = true;
     }
-    int hoursPassed = ( (timeSinceActivate - now.unixtime()) / 3600 ) % 100; //gets the hours passed (converts from unixtime to hours)
-    int minutesPassed = ( (timeSinceActivate - now.unixtime()) % 3600 ) / 60;//gets the minutes of the time (converted from unixtime)
-    int displaytime = (hoursPassed * 100) + minutesPassed;
+    long hoursPassed = ( long(now.unixtime() - timeSinceActivate) / 3600 )% 100; //gets the hours passed (converts from unixtime to hours)
+    long minutesPassed = ( long(now.unixtime() - timeSinceActivate)% 3600 ) / 60;//gets the minutes of the time (converted from unixtime)
+    /*
+    for debugging long secondsPassed = long( now.unixtime() - timeSinceActivate);
+    Serial.println(now.unixtime());
+    Serial.println(hoursPassed);
+    Serial.println(minutesPassed);
+    Serial.println(secondsPassed);
+    int displaytime = (hoursPassed * 100) + minutesPassed; 
+    */
     arrivalDisplay.showNumberDecEx(displaytime, 0b11100000, true);
 
 }
