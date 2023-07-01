@@ -169,6 +169,8 @@ void loop() {
     Serial.println("you gotta work for it"); //IF ARRIVAL BUTTON PUSHED: displayArrivalTime() We wrote this function for you
     Serial.println("you gotta work for it"); //IF ACTIVATE BUTtON PUSHED: displayActivateTime() You gotta write this one yourself
 
+    //there's no pause play implemented into the timer functions, think about how you want to do this
+    
     //things to think about: do you want the displays to be on if you haven't started the timers yet?  You can control the brightness of these displays, I did one in void setup
 
     // STEP 2: UPDATE THE COUNTERS USING BUTTON PRESSES
