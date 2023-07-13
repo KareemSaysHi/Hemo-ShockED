@@ -26,9 +26,9 @@ int latch = 12;
 int clock = 13;
 
 //I'm using arrays to define pins for the 2 digit LEDs, since it'll turn out to be very very helpful for our display7seg function
-int twoDigitPins[2][2] = {{6, 7}, {8, 9}}; //This is an array inside an array!  I can explain this way more if you guys want
+int twoDigitPins[5][2] = {{4, 5}, {6, 7}, {8, 9}, {10, 11}, {12, 13}}; //This is an array inside an array!  I can explain this way more if you guys want
 int data[2] = {2, 3}; //This is an array of the data pins for each of the modules
-int counters[2] = {0, 0};
+int counters[5] = {0, 0, 0, 0, 0};
 
 int Digits[10] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 103}; //digits encoded in binary, for a common anode display?
 
@@ -43,15 +43,23 @@ TM1637Display clockDisplay = TM1637Display(22, 23); //first pin is clock, second
 TM1637Display arrivalDisplay = TM1637Display(26, 27);
 TM1637Display activateDisplay = TM1637Display(24, 25);
 
+//plusminusbuttonstuff
+const int buttons[5][2] = {{28.29}, {30,31}, {32,33}, {34,35}, {36,37}};
+int change = 0;
+int currentState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //state of pins
+int prevState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //previous state of pins
+
+int testcounter = 0;
+
 //Upcoming function written by Clement, ask him if you have questions
 void toggleColumns(bool rightOn) { //this function turns on one column of the 2 digit 7 segments and turns off the other
     if (!rightOn) {
-        for (int i = 0; i < 2; i++) { //*change i < number of rows 
+        for (int i = 0; i < 5; i++) { //*change i < number of rows 
             digitalWrite(twoDigitPins[i][0], HIGH);
             digitalWrite(twoDigitPins[i][1], LOW);
         }
     } else {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 5; i++) {
             digitalWrite(twoDigitPins[i][0], LOW);
             digitalWrite(twoDigitPins[i][1], HIGH);
         }
@@ -178,8 +186,49 @@ void displayActivateTime() {
     }
 }
 
+int buttonPress(int i) {
+    int change;
+    currentState[i][0] = digitalRead(buttons[i][0]); //update the currentstate
+    currentState[i][1] = digitalRead(buttons[i][1]);
+
+    // compare the buttonState to its previous state
+    //the change variable is +1 if button is pushed, then when released and pushed again we get a -1
+    if ((currentState[i][0] == HIGH) && (prevState[i][0] == LOW)) {
+    change = 1;
+    } else if ((currentState[i][1] == HIGH) && (prevState[i][1] == LOW)) {
+    change = -1;
+    } else {
+    change = 0;
+    }
+    prevState[i][0] = currentState[i][0];
+    prevState[i][1] = currentState[i][1];
+    return change;
+}
+
 
 void setup() { //normal void setup stuff
+
+    pinMode(latch, OUTPUT); //latch and clock are outputs
+    pinMode(clock, OUTPUT);
+
+    for (int i = 0; i < 5; i++) { //buttons
+        for (int j = 0; j < 2; j++) {
+            pinMode(buttons[i][j], INPUT_PULLUP);
+        }
+    }
+
+    pinMode (InPinArrival1, INPUT_PULLUP); //more buttons
+    pinMode (InPinActivate1, INPUT_PULLUP);
+
+    for (int i = 0; i < 2; i++) { //for all of the data pins
+    pinMode(data[i], OUTPUT); //set them to outputs
+    }
+
+    for (int i = 0; i < 5; i++) { //for all of the 2 digit 7 segments
+    for (int j = 0; j < 2; j++) {  //for each pin of each of them
+        pinMode(twoDigitPins[i][j], OUTPUT); //set them to outputs
+    }
+    }
 
   Serial.begin(115200); //serial monitor if you want it  
 
@@ -199,9 +248,22 @@ void loop() {
     
     now = rtc.now(); //note to Kareem you probably don't want to call this so frequently but for now its fine
     displayCurrentTime(); //we wrote this function for you
-    displayArrivalTime();
-    displayActivateTime();
+    //displayArrivalTime();
+    //displayActivateTime();
 
-    //157 times in 10 seconds what
+    for (int i = 0; i < 5; i++) {
+        counters[i] += buttonPress(i);
+        Serial.print(counters[i]);
+        Serial.print("\t");
+    }
+    Serial.println();
+
+    testcounter  += 1;
+    if (millis() > 10000) {
+        Serial.println(testcounter);
+        
+    }
+
+    //so the display function is SOOOO slow we might need to find a workaround to this idk what it's doing
 
 }
