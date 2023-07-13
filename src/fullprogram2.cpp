@@ -5,16 +5,11 @@
 
 RTC_DS3231 rtc; //our rtc
 
-bool arrivedYet = 0; //the patient hasn't arrived
+bool arrivedYet = false; //the patient hasn't arrived
 
 DateTime now; //we'll use this to get real time data
 unsigned long timeSinceArrival = 0; //time since arrival tracker, unsigned longs since it might be a big number
 unsigned long timeSinceActivate = 0; //time since activate tracker
-
-//our 4 digit 7 segments
-TM1637Display clockDisplay = TM1637Display(22, 23); //first pin is clock, second pin is digital input/output
-TM1637Display arrivalDisplay = TM1637Display(24, 25);
-TM1637Display activateDisplay = TM1637Display(26, 27);
 
 const int InPinArrival1 = 45;
 int CurrentStateArrival1 = HIGH;
@@ -42,6 +37,11 @@ unsigned long onTime = 3; //how long each of the 2d segments is on and off for
 int cycleTracker = 0; //for knowing what action we should be doing for displaying
 int cycleState = 0; //similar to the previous variable
 unsigned long previousMillis = 0; //unsigned longs are big numbers, which is good since they're gonna be storing large values
+
+//our 4 digit 7 segments
+TM1637Display clockDisplay = TM1637Display(22, 23); //first pin is clock, second pin is digital input/output
+TM1637Display arrivalDisplay = TM1637Display(26, 27);
+TM1637Display activateDisplay = TM1637Display(24, 25);
 
 //Upcoming function written by Clement, ask him if you have questions
 void toggleColumns(bool rightOn) { //this function turns on one column of the 2 digit 7 segments and turns off the other
@@ -102,7 +102,6 @@ void display7seg () { //this is the function that displays the numbers on the 2 
     }
 }
 
-//Upcoming function written by Kareem, ask him if you have questions
 void startRTC() { //starts up the RTC
     if (!rtc.begin()) {
         Serial.println("No RTC found, waiting");
@@ -120,7 +119,8 @@ void displayCurrentTime() {
 	clockDisplay.showNumberDecEx(displaytime, 0b11100000, true); //first argument is the number, second argument just sets the colon position, third argument tells leading zeros
 }
 
-void displayArrivalTime() { 
+//Upcoming function written by Kareem, ask him if you have questions
+void displayArrivalTime() {
     // button check stuff
     CurrentStateArrival1 = digitalRead (InPinArrival1);
     if ((CurrentStateArrival1 == LOW) && (PreviousStateArrival1 == HIGH))
@@ -136,14 +136,10 @@ void displayArrivalTime() {
 
     if (StopwatchDisplayArrival1 == true)
     {
-        long hoursPassed = ( long(now.unixtime() - timeSinceActivate) / 3600 )% 100; //gets the hours passed (converts from unixtime to hours)
-        long minutesPassed = ( long(now.unixtime() - timeSinceActivate)% 3600 ) / 60;//gets the minutes of the time (converted from unixtime)
-        long secondsPassed = long( now.unixtime() - timeSinceActivate);
-        Serial.println(now.unixtime());
-        Serial.println(hoursPassed);
-        Serial.println(minutesPassed);
-        Serial.println(secondsPassed);
-        int displaytime = (hoursPassed * 100) + minutesPassed;
+        long hoursPassed = ( long(now.unixtime() - timeSinceArrival) / 3600 )% 100; //gets the hours passed (converts from unixtime to hours)
+        long minutesPassed = ( long(now.unixtime() - timeSinceArrival)% 3600 ) / 60;//gets the minutes of the time (converted from unixtime)
+        long secondsPassed = long( now.unixtime() - timeSinceArrival);
+        int displaytime = (hoursPassed * 100) + secondsPassed;
         if (secondsPassed % 2 == 0) {
             arrivalDisplay.showNumberDecEx(displaytime, 0b11100000, true);
         } else {
@@ -169,70 +165,43 @@ void displayActivateTime() {
 
     if (StopwatchDisplayActivate1 == true)
     {
-    long hoursPassed = ( long(now.unixtime() - timeSinceActivate) / 3600 )% 100; //gets the hours passed (converts from unixtime to hours)
-    long minutesPassed = ( long(now.unixtime() - timeSinceActivate)% 3600 ) / 60;//gets the minutes of the time (converted from unixtime)
-    long secondsPassed = long( now.unixtime() - timeSinceActivate);
-    int displaytime = (hoursPassed * 100) + minutesPassed;
-    activateDisplay.showNumberDecEx(displaytime, 0b11100000, true);
+        long hoursPassed = ( long(now.unixtime() - timeSinceActivate) / 3600 )% 100; //gets the hours passed (converts from unixtime to hours)
+        long minutesPassed = ( long(now.unixtime() - timeSinceActivate)% 3600 ) / 60;//gets the minutes of the time (converted from unixtime)
+        long secondsPassed = long( now.unixtime() - timeSinceActivate);
+        int displaytime = (hoursPassed * 100) + secondsPassed;
+        Serial.println(displaytime);
+        if (secondsPassed % 2 == 0) {
+            activateDisplay.showNumberDecEx(displaytime, 0b11100000, true);
+        } else {
+            activateDisplay.showNumberDecEx(displaytime, 0b00000000, true);
+        }
     }
 }
 
+
 void setup() { //normal void setup stuff
-    
-    pinMode(latch, OUTPUT); //latch and clock are outputs
-    pinMode(clock, OUTPUT);
 
-    pinMode (InPinArrival1, INPUT_PULLUP);
-    pinMode (InPinActivate1, INPUT_PULLUP);
+  Serial.begin(115200); //serial monitor if you want it  
 
-    for (int i = 0; i < 2; i++) { //for all of the data pins
-    pinMode(data[i], OUTPUT); //set them to outputs
-    }
+  startRTC(); //starts the RTC, check out the function above
 
-    for (int i = 0; i < 2; i++) { //for all of the 2 digit 7 segments
-    for (int j = 0; j < 2; i++) {  //for each pin of each of them
-        pinMode(twoDigitPins[i][j], OUTPUT); //set them to outputs
-    }
-    }
+  clockDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
+  clockDisplay.clear(); //clear the display
+  
+  arrivalDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
+  arrivalDisplay.clear(); //clear the display
 
-    Serial.begin(115200); //serial monitor if you want it  
-
-    startRTC(); //starts the RTC, check out the function above
-
-    clockDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
-    clockDisplay.clear(); //clear the display
-
-    arrivalDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
-    arrivalDisplay.clear(); //clear the display
-
-    activateDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
-    activateDisplay.clear(); //clear the display
+  activateDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
+  activateDisplay.clear(); //clear the display
 }
 
 void loop() {
     
-    //Ok the rest is up to you guys
-
-    // STEP 1: UPDATE TIME AND CLOCK LEDS
-    
     now = rtc.now(); //note to Kareem you probably don't want to call this so frequently but for now its fine
-
     displayCurrentTime(); //we wrote this function for you
     displayArrivalTime();
-    //displayActivateTime();
+    displayActivateTime();
 
-    Serial.println(StopwatchDisplayArrival1);
-    Serial.println(StopwatchDisplayActivate1);
-    Serial.println("you gotta work for it"); // this is all you we are giving you none of this :)
-    Serial.println();
-    delay(500);
-    
-
-    //display7seg(); //I made this very easy, thats it :D
+    //157 times in 10 seconds what
 
 }
-    
-
-
-  
-

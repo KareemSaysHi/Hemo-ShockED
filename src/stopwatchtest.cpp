@@ -12,8 +12,9 @@ uint32_t timeSinceArrival = 0; //time since arrival tracker, unsigned longs sinc
 uint32_t timeSinceActivate = 0; //time since activate tracker
 
 //our 4 digit 7 segments
-TM1637Display clockDisplay = TM1637Display(3, 4); //first pin is clock, second pin is digital input/output
-TM1637Display arrivalDisplay = TM1637Display(12, 13);
+TM1637Display clockDisplay = TM1637Display(22, 23); //first pin is clock, second pin is digital input/output
+TM1637Display arrivalDisplay = TM1637Display(24, 25);
+TM1637Display activateDisplay = TM1637Display(26, 27);
 
 
 
@@ -48,8 +49,11 @@ void displayArrivalTime() {
     Serial.println(minutesPassed);
     Serial.println(secondsPassed);
     int displaytime = (hoursPassed * 100) + minutesPassed;
-    arrivalDisplay.showNumberDecEx(displaytime, 0b11100000, true);
-
+    if (secondsPassed % 2 == 0) {
+        arrivalDisplay.showNumberDecEx(displaytime, 0b11100000, true);
+    } else {
+        arrivalDisplay.showNumberDecEx(displaytime, 0b00000000, true);
+    }
 }
 
 
