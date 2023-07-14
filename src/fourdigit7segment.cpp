@@ -4,12 +4,13 @@
 #include <TM1637Display.h>
 
 // Define the connections pins
-#define CLK 3
-#define DIO 4
+#define CLK 22
+#define DIO 23
 
 // Create rtc and display object
 RTC_DS3231 rtc;
 TM1637Display display = TM1637Display(CLK, DIO);
+bool cleardisplay = true;
 
 void setup() {
 	// Begin serial communication
@@ -31,10 +32,12 @@ void setup() {
 	}
 
 	// Set the display brightness (0-7)
-	display.setBrightness(5);
+	display.setBrightness(0x0a);
 	
 	// Clear the display
 	display.clear();
+
+	cleardisplay = false;
 }
 
 void loop() {
@@ -42,12 +45,12 @@ void loop() {
 	
   DateTime now = rtc.now();
 
-
+	if (display.update()) {
 	// Create time format to display
 	int displaytime = (now.hour() * 100) + now.minute();
 
 	// Display the current time in 24 hour format with leading zeros and a center colon enabled
 	display.showNumberDecEx(displaytime, 0b11100000, true);
     Serial.println(displaytime); 
-	delay(1000);
+	}
 }

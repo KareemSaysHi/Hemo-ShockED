@@ -1,7 +1,7 @@
 #include <Arduino.h> //you don't need this if you're not using vscode
 #include <RTClib.h> //rtc library
 #include <SPI.h> //for i2c comms, needed for rtc library
-#include <TM1637Display.h> //4 digit 7 segment library
+#include <TM1637Display.h> //4 digit 7 segment library, USING THE ONE WITH NO DELAYS
 
 RTC_DS3231 rtc; //our rtc
 
@@ -44,12 +44,13 @@ TM1637Display arrivalDisplay = TM1637Display(26, 27);
 TM1637Display activateDisplay = TM1637Display(24, 25);
 
 //plusminusbuttonstuff
-const int buttons[5][2] = {{28.29}, {30,31}, {32,33}, {34,35}, {36,37}};
+int buttons[5][2] = {{28,29}, {30,31}, {32,33}, {34,35}, {36,37}};
 int change = 0;
 int currentState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //state of pins
 int prevState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //previous state of pins
 
 int testcounter = 0;
+long testprevmillis = 0;
 
 //Upcoming function written by Clement, ask him if you have questions
 void toggleColumns(bool rightOn) { //this function turns on one column of the 2 digit 7 segments and turns off the other
@@ -217,18 +218,18 @@ void setup() { //normal void setup stuff
         }
     }
 
-    pinMode (InPinArrival1, INPUT_PULLUP); //more buttons
-    pinMode (InPinActivate1, INPUT_PULLUP);
-
     for (int i = 0; i < 2; i++) { //for all of the data pins
-    pinMode(data[i], OUTPUT); //set them to outputs
+        pinMode(data[i], OUTPUT); //set them to outputs
     }
 
     for (int i = 0; i < 5; i++) { //for all of the 2 digit 7 segments
-    for (int j = 0; j < 2; j++) {  //for each pin of each of them
-        pinMode(twoDigitPins[i][j], OUTPUT); //set them to outputs
+        for (int j = 0; j < 2; j++) {  //for each pin of each of them
+            pinMode(twoDigitPins[i][j], OUTPUT); //set them to outputs
+        }
     }
-    }
+
+    pinMode (InPinArrival1, INPUT_PULLUP); //more buttons
+    pinMode (InPinActivate1, INPUT_PULLUP);
 
   Serial.begin(115200); //serial monitor if you want it  
 
@@ -247,23 +248,40 @@ void setup() { //normal void setup stuff
 void loop() {
     
     now = rtc.now(); //note to Kareem you probably don't want to call this so frequently but for now its fine
-    displayCurrentTime(); //we wrote this function for you
-    //displayArrivalTime();
-    //displayActivateTime();
+    
+    if (clockDisplay.update()) {
+        displayCurrentTime(); //we wrote this function for you
+    }
+    if (arrivalDisplay.update()) {
+        displayArrivalTime();
+    }
+    if (activateDisplay.update()) {
+        displayActivateTime();
+    }
 
     for (int i = 0; i < 5; i++) {
         counters[i] += buttonPress(i);
         Serial.print(counters[i]);
         Serial.print("\t");
     }
-    Serial.println();
+    
+    //Serial.println();
+
+    /* Serial.print(StopwatchDisplayArrival1);
+    Serial.print("\t");
+    Serial.println(StopwatchDisplayActivate1); */
 
     testcounter  += 1;
-    if (millis() > 10000) {
+    if (millis() % 10000 < 500) {
+        testcounter = 0;
+        testprevmillis = 0;
+    }
+    if (millis() % 10000 > 9500) {
         Serial.println(testcounter);
-        
     }
 
-    //so the display function is SOOOO slow we might need to find a workaround to this idk what it's doing
+    //display7seg();
+
+    //7731 runs in 10 seconds, hopefully this is fast enough...
 
 }
