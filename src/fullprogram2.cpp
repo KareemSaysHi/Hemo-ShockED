@@ -11,23 +11,27 @@ DateTime now; //we'll use this to get real time data
 unsigned long timeSinceArrival = 0; //time since arrival tracker, unsigned longs since it might be a big number
 unsigned long timeSinceActivate = 0; //time since activate tracker
 
-const int InPinArrival1 = 45;
+const int InPinArrival1 = 14;
+const int InPinArrival2 = 15;
+
 int CurrentStateArrival1 = HIGH;
 int PreviousStateArrival1 = HIGH;
 bool StopwatchDisplayArrival1 = false;
 
-const int InPinActivate1 = 44;
+const int InPinActivate1 = 16;
+const int InPinActivate2 = 17;
+
 int CurrentStateActivate1 = HIGH;
 int PreviousStateActivate1 = HIGH;
 bool StopwatchDisplayActivate1 = false;
 
 //Latch and clock are shared between all shift registers
-int latch = 12; 
-int clock = 13;
+int latch = 2; 
+int clock = 3;
 
 //I'm using arrays to define pins for the 2 digit LEDs, since it'll turn out to be very very helpful for our display7seg function
 int twoDigitPins[5][2] = {{4, 5}, {6, 7}, {8, 9}, {10, 11}, {12, 13}}; //This is an array inside an array!  I can explain this way more if you guys want
-int data[2] = {2, 3}; //This is an array of the data pins for each of the modules
+int data[5] = {46, 47, 48, 49, 50}; //This is an array of the data pins for each of the modules
 int counters[5] = {0, 0, 0, 0, 0};
 
 int Digits[10] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 103}; //digits encoded in binary, for a common anode display?
@@ -40,14 +44,21 @@ unsigned long previousMillis = 0; //unsigned longs are big numbers, which is goo
 
 //our 4 digit 7 segments
 TM1637Display clockDisplay = TM1637Display(22, 23); //first pin is clock, second pin is digital input/output
-TM1637Display arrivalDisplay = TM1637Display(26, 27);
-TM1637Display activateDisplay = TM1637Display(24, 25);
+TM1637Display arrivalDisplay = TM1637Display(24, 25);
+TM1637Display activateDisplay = TM1637Display(26, 27);
 
 //plusminusbuttonstuff
 int buttons[5][2] = {{28,29}, {30,31}, {32,33}, {34,35}, {36,37}};
 int change = 0;
 int currentState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //state of pins
 int prevState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //previous state of pins
+
+int txaButton = 38;
+int caButton = 39;
+int txaRed = 40;
+int txaGreen = 41;
+int caRed = 42;
+int caGreen = 43;
 
 int testcounter = 0;
 long testprevmillis = 0;
@@ -78,7 +89,7 @@ void display7seg () { //this is the function that displays the numbers on the 2 
     
             digitalWrite(latch, LOW); //turn latch low to update the data
 
-            for (int i = 0; i < 2; i++) { //for all of the data pins
+            for (int i = 0; i < 5; i++) { //for all of the data pins
                 shiftOut(data[i], clock, MSBFIRST, Digits[counters[i] % 10]); //we write the 10s digit of whatever's in the counter array
             }
             
@@ -87,7 +98,7 @@ void display7seg () { //this is the function that displays the numbers on the 2 
         } else if (cycleState == 1) { //second state: display nothing on both displays 
 
             digitalWrite(latch, LOW);
-             for (int i = 0; i < 2; i++) { //for all of the data pins
+             for (int i = 0; i < 5; i++) { //for all of the data pins
                 shiftOut(data[i], clock, MSBFIRST, 0); //we clear the displays
             }
             digitalWrite(latch, HIGH);
@@ -96,14 +107,14 @@ void display7seg () { //this is the function that displays the numbers on the 2 
             toggleColumns(false); //turn all the ones digits off and the tens digits on
 
             digitalWrite(latch, LOW);
-            for (int i = 0; i < 2; i++) { //for all of the data pins
+            for (int i = 0; i < 5; i++) { //for all of the data pins
                 shiftOut(data[i], clock, MSBFIRST, Digits[counters[i] / 10]); //we write the ones digit of whatever's in the counter array
             }
             digitalWrite(latch, HIGH);
             
         } else {
             digitalWrite(latch, LOW);
-            for (int i = 0; i < 2; i++) { 
+            for (int i = 0; i < 5; i++) { 
                 shiftOut(data[i], clock, MSBFIRST, 0); 
             }
             digitalWrite(latch, HIGH);
@@ -141,6 +152,10 @@ void displayArrivalTime() {
     }
     PreviousStateArrival1 = CurrentStateArrival1;
 
+    if (InPinArrival2 == LOW) {
+        StopwatchDisplayArrival1 = false;
+    }
+
     //stopwatch stuff
 
     if (StopwatchDisplayArrival1 == true)
@@ -169,6 +184,10 @@ void displayActivateTime() {
 
     }
     PreviousStateActivate1 = CurrentStateActivate1;
+
+    if (InPinActivate2 == LOW) {
+        StopwatchDisplayActivate1 = false;
+    }
 
     //stopwatch stuff
 
@@ -206,8 +225,28 @@ int buttonPress(int i) {
     return change;
 }
 
+void updateTXACA() {
+
+    if (digitalRead (txaButton) == LOW) {
+        digitalWrite(txaRed, LOW);
+        digitalWrite(txaGreen, HIGH);
+    }
+
+    if (digitalRead (caButton) == LOW) {
+        digitalWrite(caRed, LOW);
+        digitalWrite(caGreen, HIGH);
+    }
+}
 
 void setup() { //normal void setup stuff
+
+    pinMode(txaButton, INPUT_PULLUP);
+    pinMode(caButton, INPUT_PULLUP);
+
+    pinMode(txaRed, OUTPUT);
+    pinMode(txaGreen, OUTPUT);
+    pinMode(caRed, OUTPUT);
+    pinMode(caGreen, OUTPUT);
 
     pinMode(latch, OUTPUT); //latch and clock are outputs
     pinMode(clock, OUTPUT);
@@ -231,18 +270,23 @@ void setup() { //normal void setup stuff
     pinMode (InPinArrival1, INPUT_PULLUP); //more buttons
     pinMode (InPinActivate1, INPUT_PULLUP);
 
-  Serial.begin(115200); //serial monitor if you want it  
+    digitalWrite(txaRed, HIGH); 
+    digitalWrite(caRed, HIGH); 
+    digitalWrite(txaGreen, LOW); 
+    digitalWrite(caGreen, LOW); 
 
-  startRTC(); //starts the RTC, check out the function above
+    Serial.begin(115200); //serial monitor if you want it  
 
-  clockDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
-  clockDisplay.clear(); //clear the display
-  
-  arrivalDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
-  arrivalDisplay.clear(); //clear the display
+    startRTC(); //starts the RTC, check out the function above
 
-  activateDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
-  activateDisplay.clear(); //clear the display
+    clockDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
+    clockDisplay.clear(); //clear the display
+
+    arrivalDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
+    arrivalDisplay.clear(); //clear the display
+
+    activateDisplay.setBrightness(5); //you can set the brightness of the 4 digit 7 segments
+    activateDisplay.clear(); //clear the display
 }
 
 void loop() {
@@ -259,11 +303,13 @@ void loop() {
         displayActivateTime();
     }
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) { //update the counter values
         counters[i] += buttonPress(i);
-        Serial.print(counters[i]);
-        Serial.print("\t");
+        //Serial.print(counters[i]);
+        //Serial.print("\t");
     }
+
+    updateTXACA(); //update the txa and ca things
     
     //Serial.println();
 
@@ -271,16 +317,16 @@ void loop() {
     Serial.print("\t");
     Serial.println(StopwatchDisplayActivate1); */
 
-    testcounter  += 1;
+    /* testcounter  += 1;
     if (millis() % 10000 < 500) {
         testcounter = 0;
         testprevmillis = 0;
     }
     if (millis() % 10000 > 9500) {
         Serial.println(testcounter);
-    }
+    } */  // ookla speed test
 
-    //display7seg();
+    display7seg();
 
     //7731 runs in 10 seconds, hopefully this is fast enough...
 
