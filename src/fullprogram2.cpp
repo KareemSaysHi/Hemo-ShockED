@@ -53,12 +53,12 @@ int change = 0;
 int currentState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //state of pins
 int prevState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //previous state of pins
 
-int txaButton = 38;
-int caButton = 39;
-int txaRed = 40;
-int txaGreen = 41;
-int caRed = 42;
-int caGreen = 43;
+int txaButton = 10;
+int caButton = 11;
+int txaRed = 52;
+int txaGreen = 53;
+int caRed = 50;
+int caGreen = 51;
 
 int testcounter = 0;
 long testprevmillis = 0;

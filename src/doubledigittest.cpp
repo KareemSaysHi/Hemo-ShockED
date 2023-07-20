@@ -16,7 +16,7 @@ int datas[5] = {23, 24, 25, 26, 27}; //This is an array of the data pins for eac
 int clocks[5] = {28, 29, 30, 31, 32};
 int counters[5] = {1, 2, 3, 4, 5};
 
-int testingLed = 3;
+int testingLed = 4;
 int data = datas[testingLed];
 int clock = clocks[testingLed];
 int digit1 = twoDigitPins[testingLed][0]; //digit 1 is the MSB

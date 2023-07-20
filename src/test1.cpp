@@ -8,24 +8,24 @@ int latch = 22;
 
 //I'm using arrays to define pins for the 2 digit LEDs, since it'll turn out to be very very helpful for our display7seg function
 
-const int numDigits = 5;
+const int numDigits = 3;
 
-int twoDigitPins[numDigits][2] = {{33, 34}, {35, 36}, {37, 38}, {39,40}, {41, 42}}; //This is an array inside an array!  I can explain this way more if you guys want
+int twoDigitPins[5][2] = {{33, 34}, {35, 36}, {37, 38}, {39,40}, {41, 42}}; //This is an array inside an array!  I can explain this way more if you guys want
 
-int data[numDigits] = {23, 24, 25, 27, 28}; //This is an array of the data pins for each of the modules
-int clocks[numDigits] = {28, 29, 30, 31, 23};
-int counters[numDigits] = {01, 02, 03, 04, 05};
+int data[5] = {23, 24, 25, 27, 28}; //This is an array of the data pins for each of the modules
+int clocks[5] = {28, 29, 30, 31, 23};
+int counters[5] = {01, 02, 03, 04, 05};
 
 int Digits[10] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 103}; //digits encoded in binary, for a common anode display?
 
 //These variables are for the display7seg function
-unsigned long onTime = 15; //how long each of the 2d segments is on and off for
+unsigned long onTime = 3; //how long each of the 2d segments is on and off for
 int cycleTracker = 0; //for knowing what action we should be doing for displaying
 int cycleState = 0; //similar to the previous variable
 unsigned long previousMillis = 0; //unsigned longs are big numbers, which is good since they're gonna be storing large values
 
 
-int buttons[5][2] = {{21,20}, {19,18}, {17,16}, {15,14}, {2,3}};
+int buttons[5][2] = {{19,18}, {17,16}, {15,14}, {2,3}, {4,5}};
 int change = 0;
 int currentState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //state of pins
 int prevState[5][2] = {{1,1},{1,1},{1,1},{1,1},{1,1}}; //previous state of pins
@@ -117,15 +117,15 @@ void setup() { //normal void setup stuff
 
     pinMode(latch, OUTPUT); //latch and clock are outputs
     
-    for (int i = 0; i < numDigits; i++) {
+    for (int i = 0; i < 5; i++) {
         pinMode(clocks[i], OUTPUT);
     }
 
-    for (int i = 0; i < numDigits; i++) { //for all of the data pins
+    for (int i = 0; i < 5; i++) { //for all of the data pins
         pinMode(data[i], OUTPUT); //set them to outputs
     }
 
-    for (int i = 0; i < numDigits; i++) { //for all of the 2 digit 7 segments
+    for (int i = 0; i < 5; i++) { //for all of the 2 digit 7 segments
         for (int j = 0; j < 2; j++) {  //for each pin of each of them
             pinMode(twoDigitPins[i][j], OUTPUT); //set them to outputs
         }
