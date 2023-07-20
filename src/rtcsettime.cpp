@@ -4,6 +4,8 @@
 
 RTC_DS3231 rtc;
 
+int i = 2;
+
 void setup() {
     Serial.begin(115200);
     if (!rtc.begin()) {

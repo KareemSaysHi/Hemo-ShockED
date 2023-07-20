@@ -1,6 +1,6 @@
 #include <Arduino.h> //you don't need this if you're not using vscode
+#include <Adafruit_I2CDevice.h>
 #include <RTClib.h> //rtc library
-#include <SPI.h> //for i2c comms, needed for rtc library
 #include <TM1637Display.h> //4 digit 7 segment library, USING THE ONE WITH NO DELAYS
 
 RTC_DS3231 rtc; //our rtc
@@ -87,7 +87,7 @@ void display7seg () { //this is the function that displays the numbers on the 2 
         if (cycleState == 0) { //first state: display the ones digit of all 7 segments
             toggleColumns(true); //turn all the ones digits on and the tens digits off
     
-            digitalWrite(latch, LOW); //turn latch low to update the data
+            digitalWrite(latch, LOW); //turn latch lo wto update the data
 
             for (int i = 0; i < 5; i++) { //for all of the data pins
                 shiftOut(data[i], clock, MSBFIRST, Digits[counters[i] % 10]); //we write the 10s digit of whatever's in the counter array

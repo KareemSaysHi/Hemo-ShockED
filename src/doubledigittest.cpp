@@ -1,16 +1,35 @@
-#include <Arduino.h>
-
+#include <Arduino.h> //you don't need this if you're not using vscode
+#include <RTClib.h> //rtc library
+#include <SPI.h> //for i2c comms, needed for rtc library
+#include <TM1637Display.h> //4 digit 7 segment library, USING THE ONE WITH NO DELAYS
 
 // DOUBLE DIGIT 7 SEGMENT PINS
 // NOTE: the latch pin is active on rising edge, so you have to switch it off and on when you are changing data
-int data = 8;
-int clock = 10;
-int latch = 9;
-int digit1 = 6; //digit 1 is the MSB
-int digit2 = 7;
-int dataButton = 2;
-int clockButton = 3;
+
+int latch = 22; 
+
+//I'm using arrays to define pins for the 2 digit LEDs, since it'll turn out to be very very helpful for our display7seg function
+
+int twoDigitPins[5][2] = {{33, 34}, {35, 36}, {37, 38}, {39, 40}, {41, 42}}; //This is an array inside an array!  I can explain this way more if you guys want
+
+int datas[5] = {23, 24, 25, 26, 27}; //This is an array of the data pins for each of the modules
+int clocks[5] = {28, 29, 30, 31, 32};
+int counters[5] = {1, 2, 3, 4, 5};
+
+int testingLed = 3;
+int data = datas[testingLed];
+int clock = clocks[testingLed];
+int digit1 = twoDigitPins[testingLed][0]; //digit 1 is the MSB
+int digit2 = twoDigitPins[testingLed][1];
+
+
 int Digits[10] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 103}; //digits encoded in binary
+
+// 24 45 44
+// 25 46 47
+// 26 48 49
+// 27 51 50
+// 28 53 52
 
 unsigned long onTime = 3; //how long each 7seg is on for and off for
 
@@ -60,8 +79,6 @@ void update7seg (int number) {
 }
 
 void setup() {
-  pinMode(dataButton, INPUT_PULLUP);
-  pinMode(clockButton, INPUT_PULLUP);
 
   pinMode(latch, OUTPUT);
   pinMode(data, OUTPUT);
@@ -79,8 +96,8 @@ void setup() {
 void loop() {
     display7seg(i);
     counter ++;
-    if (millis() > i*2000) {
-        Serial.println(counter);
+    if (millis() > i*500) {
+        Serial.println(i);
         counter = 0;
         i++;
     }

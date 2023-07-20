@@ -12,9 +12,9 @@ uint32_t timeSinceArrival = 0; //time since arrival tracker, unsigned longs sinc
 uint32_t timeSinceActivate = 0; //time since activate tracker
 
 //our 4 digit 7 segments
-TM1637Display clockDisplay = TM1637Display(22, 23); //first pin is clock, second pin is digital input/output
-TM1637Display arrivalDisplay = TM1637Display(24, 25);
-TM1637Display activateDisplay = TM1637Display(26, 27);
+TM1637Display clockDisplay = TM1637Display(49, 48); //first pin is clock, second pin is digital input/output
+TM1637Display arrivalDisplay = TM1637Display(45, 44);
+TM1637Display activateDisplay = TM1637Display(47, 46);
 
 
 
